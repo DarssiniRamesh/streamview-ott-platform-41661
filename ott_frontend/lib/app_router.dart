@@ -39,10 +39,10 @@ class _MainShell extends StatefulWidget {
 class _MainShellState extends State<_MainShell> {
   int _index = 0;
 
-  final _pages = const [
-    _HomePage(),
-    _SearchPage(),
-    _ProfilePage(),
+  final _pages = [
+    const _HomePage(),
+    const _SearchPage(),
+    const _ProfilePage(),
   ];
 
   @override
@@ -55,20 +55,20 @@ class _MainShellState extends State<_MainShell> {
             index: _index,
             children: _pages,
           ),
-          // Mini player docked at bottom
-          const Align(
+          // Mini player docked at bottom - must be non-const due to dynamic provider state
+          Align(
             alignment: Alignment.bottomCenter,
-            child: MiniPlayer(),
+            child: const MiniPlayer(),
           ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -173,9 +173,9 @@ class _ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: AppBar(title: Text('Profile')),
-      body: Center(
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: const Center(
         child: Text('Profile screen placeholder'),
       ),
     );
@@ -183,12 +183,12 @@ class _ProfilePage extends StatelessWidget {
 }
 
 class _NotFoundPage extends StatelessWidget {
-  const _NotFoundPage({super.key});
+  const _NotFoundPage();
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Route not found')),
+    return Scaffold(
+      body: const Center(child: Text('Route not found')),
     );
   }
 }
