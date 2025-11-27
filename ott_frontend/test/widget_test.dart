@@ -1,18 +1,18 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ott_frontend/main.dart';
 
 void main() {
-  testWidgets('App generation message displayed', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App boots and shows Home route', (tester) async {
+    await tester.pumpWidget(const OttApp());
 
-    expect(find.text('ott_frontend App is being generated...'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    // Expect to find "Home" text from placeholder on initial route.
+    expect(find.text('Home'), findsOneWidget);
   });
 
-  testWidgets('App bar has correct title', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
-
-    expect(find.text('ott_frontend'), findsOneWidget);
+  testWidgets('Navigation buttons exist on home', (tester) async {
+    await tester.pumpWidget(const OttApp());
+    expect(find.text('Search'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+    expect(find.text('Player'), findsOneWidget);
   });
 }
