@@ -1,16 +1,18 @@
 # ott_frontend
 
-A new Flutter project.
+A Flutter OTT frontend featuring browsing, details, and integrated video playback with a full player and a dockable mini player.
 
-## Getting Started
+## Video Playback
 
-This project is a starting point for a Flutter application.
+- Open-source demo videos are included (Big Buck Bunny, Sintel, Tears of Steel).
+- Full player uses `video_player` with a controls overlay (play/pause, seek, mute, duration).
+- Mini player docks at the bottom while you browse Home/Search/Profile and can be expanded with a tap.
 
-A few resources to get you started if this is your first Flutter project:
+### How to use
+- Launch the app. On Home or Search, tap any item to open the Video Detail screen.
+- Use Play to start full-screen playback, or "Play in Mini" to start playback in the mini player.
+- While video is playing in mini, navigate with the bottom tabs. Tap the mini player to expand to full.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Notes
+- Handles buffering and error states gracefully with indicators and messages.
+- Attribution for demo media is included in `assets/videos/README.md`.

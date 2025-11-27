@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 
 import 'app_router.dart';
 import 'app_theme.dart';
+import 'features/video/video_player_provider.dart';
+import 'features/video/video_player_screen.dart';
+
 //// Entry point for the OTT frontend application.
 //// Initializes Flutter bindings, loads environment variables gracefully (mock defaults if .env not found),
 //// sets up dependency injection scaffolding, and renders the MaterialApp with routes and Ocean Professional theme.
@@ -29,17 +32,36 @@ class OttApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Placeholder MultiProvider for later steps (repositories, view models, etc.)
-    return MultiProvider(
-      providers: const [
-        // Add providers here in subsequent steps (e.g., ChangeNotifierProvider for app state)
-      ],
+    return ChangeNotifierProvider(
+      create: (_) => VideoPlayerProvider(),
       child: MaterialApp(
         title: 'StreamView',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme, // Minimalist Ocean Professional
         onGenerateRoute: AppRouter.onGenerateRoute,
         initialRoute: '/',
+        builder: (context, child) {
+          // Listen to expansion and navigate to full player when needed.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final vm = context.read<VideoPlayerProvider>();
+            if (vm.isExpanded && vm.current != null) {
+              // Ensure we are on top-level navigator and not pushing duplicates.
+              final navigator = Navigator.of(context);
+              // If already on player route, skip.
+              bool onPlayer = false;
+              navigator.popUntil((route) {
+                if (route.settings.name == '/player') {
+                  onPlayer = true;
+                }
+                return true;
+              });
+              if (!onPlayer) {
+                navigator.push(VideoPlayerScreen.route(vm.current!));
+              }
+            }
+          });
+          return child ?? const SizedBox.shrink();
+        },
       ),
     );
   }
