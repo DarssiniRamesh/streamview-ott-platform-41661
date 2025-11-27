@@ -15,7 +15,7 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return _build(const _MainShell(), settings);
+        return _build(_MainShell(), settings);
       case '/detail':
         final item = settings.arguments as VideoItem;
         return _build(VideoDetailScreen(item: item), settings);
@@ -42,7 +42,7 @@ class _MainShellState extends State<_MainShell> {
   final _pages = [
     const _HomePage(),
     const _SearchPage(),
-    const _ProfilePage(),
+    _ProfilePage(),
   ];
 
   @override
@@ -174,7 +174,7 @@ class _ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text('Profile')),
       body: const Center(
         child: Text('Profile screen placeholder'),
       ),
