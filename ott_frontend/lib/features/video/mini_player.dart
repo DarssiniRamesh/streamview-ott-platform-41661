@@ -19,9 +19,21 @@ class MiniPlayer extends StatelessWidget {
         }
 
         final controller = vm.controller;
+        final hasError = vm.error != null || (controller?.value.hasError ?? false);
+
         if (controller == null || !controller.value.isInitialized) {
-          return _MiniBarSkeleton(onClose: vm.stop);
+          // Show poster thumbnail if available while loading
+          final poster = vm.current?.posterUrl;
+          final posterAsset = vm.current?.posterAsset;
+          return _MiniBarSkeleton(
+            onClose: vm.stop,
+            posterUrl: poster,
+            posterAsset: posterAsset,
+            error: hasError ? (vm.error ?? controller?.value.errorDescription) : null,
+          );
         }
+
+        final aspect = controller.value.aspectRatio == 0 ? (16 / 9) : controller.value.aspectRatio;
 
         return Material(
           elevation: 8,
@@ -34,7 +46,7 @@ class MiniPlayer extends StatelessWidget {
                 children: [
                   // Video preview
                   AspectRatio(
-                    aspectRatio: 16 / 9,
+                    aspectRatio: aspect,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -42,6 +54,12 @@ class MiniPlayer extends StatelessWidget {
                         // overlay just for buffering indicator in mini
                         if (controller.value.isBuffering)
                           const Center(child: CircularProgressIndicator(color: Colors.white)),
+                        if (hasError)
+                          Container(
+                            color: Colors.black54,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.error_outline, color: Colors.white),
+                          ),
                       ],
                     ),
                   ),
@@ -95,8 +113,16 @@ class MiniPlayer extends StatelessWidget {
 
 class _MiniBarSkeleton extends StatelessWidget {
   final Future<void> Function() onClose;
+  final String? posterUrl;
+  final String? posterAsset;
+  final String? error;
 
-  const _MiniBarSkeleton({required this.onClose});
+  const _MiniBarSkeleton({
+    required this.onClose,
+    this.posterUrl,
+    this.posterAsset,
+    this.error,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -107,10 +133,20 @@ class _MiniBarSkeleton extends StatelessWidget {
         height: 72,
         child: Row(
           children: [
-            Container(width: 128, color: Colors.black26),
+            SizedBox(
+              width: 128,
+              child: ClipRRect(
+                child: _buildPoster(),
+              ),
+            ),
             const SizedBox(width: 8),
-            const Expanded(
-              child: Text('Loading...', style: TextStyle(color: Colors.white70)),
+            Expanded(
+              child: Text(
+                error != null ? (error!) : 'Loading...',
+                style: TextStyle(color: error != null ? Colors.red[200] : Colors.white70),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.close, color: Colors.white),
@@ -120,5 +156,31 @@ class _MiniBarSkeleton extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildPoster() {
+    if (posterAsset != null && posterAsset!.isNotEmpty) {
+      return Image.asset(posterAsset!, fit: BoxFit.cover);
+    }
+    if (posterUrl != null && posterUrl!.isNotEmpty) {
+      return Image.network(
+        posterUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(color: Colors.black26),
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            color: Colors.black26,
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+          );
+        },
+      );
+    }
+    return Container(color: Colors.black26);
   }
 }

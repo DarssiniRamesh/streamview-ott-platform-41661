@@ -17,6 +17,54 @@ class VideoDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final posterAsset = item.posterAsset;
+    final posterUrl = item.posterUrl;
+
+    Widget posterWidget;
+    if (posterAsset != null && posterAsset.isNotEmpty) {
+      posterWidget = Image.asset(
+        posterAsset,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    } else if (posterUrl != null && posterUrl.isNotEmpty) {
+      posterWidget = Image.network(
+        posterUrl,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          height: 180,
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Center(child: Icon(Icons.movie, size: 48)),
+        ),
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            height: 180,
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+      );
+    } else {
+      posterWidget = Container(
+        height: 180,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(child: Icon(Icons.movie, size: 48)),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(item.title)),
       body: SingleChildScrollView(
@@ -24,20 +72,10 @@ class VideoDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (item.posterAsset != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(item.posterAsset!, height: 180, width: double.infinity, fit: BoxFit.cover),
-              )
-            else
-              Container(
-                height: 180,
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Center(child: Icon(Icons.movie, size: 48)),
-              ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: posterWidget,
+            ),
             const SizedBox(height: 16),
             Text(
               item.title,

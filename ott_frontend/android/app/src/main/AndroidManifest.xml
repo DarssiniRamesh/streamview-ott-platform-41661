@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Ensure network access for streaming and poster images -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="ott_frontend"
         android:name="${applicationName}"

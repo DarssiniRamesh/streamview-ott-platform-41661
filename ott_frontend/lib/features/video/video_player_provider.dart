@@ -26,6 +26,10 @@ class VideoPlayerProvider extends ChangeNotifier {
   bool get isPlaying => _controller?.value.isPlaying ?? false;
   bool get hasVideo => _current != null;
 
+  static final Uri _fallbackUri = Uri.parse(
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  );
+
   /// Dispose existing controller safely.
   Future<void> _disposeController() async {
     final c = _controller;
@@ -34,13 +38,43 @@ class VideoPlayerProvider extends ChangeNotifier {
       try {
         await c.pause();
       } catch (_) {}
+      try {
+        c.removeListener(_onControllerUpdate);
+      } catch (_) {}
       await c.dispose();
     }
   }
 
+  /// Determine controller for the given item with safe fallbacks.
+  VideoPlayerController _buildController(VideoItem item) {
+    if (item.isNetwork) {
+      // Use provided URL or fallback if parse fails
+      try {
+        final uri = Uri.parse(item.url!);
+        if (!uri.hasScheme || !(uri.isScheme('https') || uri.isScheme('http'))) {
+          return VideoPlayerController.networkUrl(_fallbackUri);
+        }
+        // Prefer https
+        final secureUri = uri.isScheme('http')
+            ? uri.replace(scheme: 'https')
+            : uri;
+        return VideoPlayerController.networkUrl(secureUri);
+      } catch (_) {
+        return VideoPlayerController.networkUrl(_fallbackUri);
+      }
+    }
+    // Asset fallback
+    if (item.assetPath != null && item.assetPath!.isNotEmpty) {
+      return VideoPlayerController.asset(item.assetPath!);
+    }
+    // Last resort: fallback URL
+    return VideoPlayerController.networkUrl(_fallbackUri);
+  }
+
   /// Start playing a [VideoItem]. If already playing another, it replaces it.
   // PUBLIC_INTERFACE
-  Future<void> play(VideoItem item, {bool expandToFull = true, bool autoplay = true}) async {
+  Future<void> play(VideoItem item,
+      {bool expandToFull = true, bool autoplay = true}) async {
     _error = null;
     _isLoading = true;
     notifyListeners();
@@ -49,10 +83,7 @@ class VideoPlayerProvider extends ChangeNotifier {
       await _disposeController();
       _current = item;
 
-      final controller = item.isNetwork
-          ? VideoPlayerController.networkUrl(Uri.parse(item.url!))
-          : VideoPlayerController.asset(item.assetPath!);
-
+      final controller = _buildController(item);
       _controller = controller;
 
       await controller.initialize();
@@ -67,9 +98,9 @@ class VideoPlayerProvider extends ChangeNotifier {
 
       _isExpanded = expandToFull;
       _isLoading = false;
-      notifyListeners();
 
       controller.addListener(_onControllerUpdate);
+      notifyListeners();
     } catch (e) {
       _error = 'Playback error: $e';
       _isLoading = false;
@@ -78,6 +109,14 @@ class VideoPlayerProvider extends ChangeNotifier {
   }
 
   void _onControllerUpdate() {
+    final c = _controller;
+    if (c == null) return;
+
+    // Surface low-level plugin error up to UI
+    if (c.value.hasError) {
+      _error ??= c.value.errorDescription ?? 'Unknown video error';
+    }
+
     // Propagate UI changes such as buffering/position/progress
     notifyListeners();
   }
